@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.1.0](https://www.github.com/jef/streetmerchant/compare/v2.0.0...v2.1.0) (2020-11-07)
+
+
+### Features
+
+* **amd:** add env vars and series filtering ([#696](https://www.github.com/jef/streetmerchant/issues/696)) ([df3b10b](https://www.github.com/jef/streetmerchant/commit/df3b10b9a5c2467e00cacb3ab93f818aafc95f02))
+* **notification:** add philips hue ([#681](https://www.github.com/jef/streetmerchant/issues/681)) ([c8a9b0b](https://www.github.com/jef/streetmerchant/commit/c8a9b0ba3ed581a9fef7ee2b459b1de84d976ff0))
+* **store:** add ps5 to german stores ([#715](https://www.github.com/jef/streetmerchant/issues/715)) ([2291b8e](https://www.github.com/jef/streetmerchant/commit/2291b8eff5b23613d1233cc4c3ead83a42286d85))
+* **store:** Adds AM3 to microcenter ([#707](https://www.github.com/jef/streetmerchant/issues/707)) ([8a45905](https://www.github.com/jef/streetmerchant/commit/8a459056c5ba8a5a90de55cfbb08c4c89ccb19d3))
+* add production scripts and better `Dockerfile` ([0d14500](https://www.github.com/jef/streetmerchant/commit/0d14500d5d8b93204bb99baf34dc9de745ae645d)), closes [#710](https://www.github.com/jef/streetmerchant/issues/710)
+* **ps5:** add console and digital edition ([#709](https://www.github.com/jef/streetmerchant/issues/709)) ([42ef7cf](https://www.github.com/jef/streetmerchant/commit/42ef7cfdced8ae3bc4192e245469798324bc42d3))
+* bring back ascii banner, but make it configurable ([#703](https://www.github.com/jef/streetmerchant/issues/703)) ([0a680e9](https://www.github.com/jef/streetmerchant/commit/0a680e977b7904e7f62a8c1c0f3d533329b23fb0))
+* **amd:** add 5950 config ([#685](https://www.github.com/jef/streetmerchant/issues/685)) ([31a3d8f](https://www.github.com/jef/streetmerchant/commit/31a3d8f7e068a17c72e0c296e176b93625bf9063))
+* **store:** add zen 3 to german stores ([#702](https://www.github.com/jef/streetmerchant/issues/702)) ([71d5cb4](https://www.github.com/jef/streetmerchant/commit/71d5cb426179f5e587adeba1ec60f9a9233ec7b6))
+* **store:** add zen 3 to more stores ([#698](https://www.github.com/jef/streetmerchant/issues/698)) ([760ddf5](https://www.github.com/jef/streetmerchant/commit/760ddf5d8523e28e294146643dda16e105176dff))
+
+
+### Bug Fixes
+
+* environment variables to match ryzen cpus ([5db8348](https://www.github.com/jef/streetmerchant/commit/5db83484f301d48509205d9d0b5146c5d7114d26))
+* revert to 14.15.0 until 15 is stable for `tsc` ([2955ea7](https://www.github.com/jef/streetmerchant/commit/2955ea70ab59c1b0dd82ec506c7a03952f81ea01)), closes [#691](https://www.github.com/jef/streetmerchant/issues/691)
+
 ## [2.0.0](https://www.github.com/jef/streetmerchant/compare/v1.7.0...v2.0.0) (2020-11-05)
 
 
