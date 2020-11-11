@@ -1,5 +1,5 @@
 import {Browser, Page, Response} from 'puppeteer';
-import {Link, Store, getStores} from './model';
+import {Link, Store} from './model';
 import {Print, logger} from '../logger';
 import {Selector, cardPrice, pageIncludesLabels} from './includes-labels';
 import {closePage, delay, getRandomUserAgent, getSleepTime, isStatusCodeInRange} from '../util';
@@ -7,9 +7,11 @@ import {config} from '../config';
 import {disableBlockerInPage} from '../adblocker';
 import {fetchLinks} from './fetch-links';
 import {filterStoreLink} from './filter';
-import open from 'open';
 import {processBackoffDelay} from './model/helpers/backoff';
 import {sendNotification} from '../notification';
+import {purchase} from './purchase';
+
+const SUCCESSFULLY_PURCHASED_STATUS_CODE = 1234567890;
 
 const inStock: Record<string, boolean> = {};
 
@@ -24,10 +26,6 @@ const linkBuilderLastRunTimes: Record<string, number> = {};
  * @param store Vendor of graphics cards.
  */
 async function lookup(browser: Browser, store: Store) {
-	if (!getStores().has(store.name)) {
-		return;
-	}
-
 	/* eslint-disable no-await-in-loop */
 	for (const link of store.links) {
 		if (!filterStoreLink(link)) {
@@ -63,6 +61,12 @@ async function lookup(browser: Browser, store: Store) {
 			await client.send('Network.clearBrowserCache');
 		}
 
+		if (statusCode === SUCCESSFULLY_PURCHASED_STATUS_CODE) {
+			// Don't close page
+			logger.info(`Not closing page ${page.url()} after purchasing ${link.model} from ${store.name}`);
+			return;
+		}
+
 		// Must apply backoff before closing the page, e.g. if CloudFlare is
 		// used to detect bot traffic, it introduces a 5 second page delay
 		// before redirecting to the next page
@@ -95,15 +99,18 @@ async function lookupCard(browser: Browser, store: Store, page: Page, link: Link
 		return statusCode;
 	}
 
-	if (await lookupCardInStock(store, page, link)) {
+	let isPurchased = false;
+	if (await lookupCardInStock(store, page, link)) { // If true, then item is in stock
+		// Param cartUrl is the url that adds the item to cart
 		const givenUrl = link.cartUrl ? link.cartUrl : link.url;
 		logger.info(`${Print.inStock(link, store, true)}\n${givenUrl}`);
 
 		if (config.browser.open) {
-			if (link.openCartAction === undefined) {
-				await open(givenUrl);
-			} else {
-				await link.openCartAction(browser);
+			try {
+				await purchase(browser, store, page, link);
+				isPurchased = true;
+			} catch {
+				logger.info(`Couldn't purchase ${link.brand} even though it was in stock :(`);
 			}
 		}
 
@@ -125,7 +132,7 @@ async function lookupCard(browser: Browser, store: Store, page: Page, link: Link
 		}
 	}
 
-	return statusCode;
+	return isPurchased ? SUCCESSFULLY_PURCHASED_STATUS_CODE : statusCode;
 }
 
 async function lookupCardInStock(store: Store, page: Page, link: Link) {

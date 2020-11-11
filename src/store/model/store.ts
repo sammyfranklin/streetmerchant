@@ -1,4 +1,4 @@
-import {Browser, LoadEvent} from 'puppeteer';
+import {Browser, LoadEvent, Page} from 'puppeteer';
 
 export type Element = {
 	container?: string;
@@ -54,6 +54,7 @@ export type Store = {
 	labels: Labels;
 	name: string;
 	setupAction?: (browser: Browser) => void;
+	goToCheckout?: (page: Page) => Promise<void>;
 	/**
 	 * The range of status codes which considered successful, i.e. without error
 	 * allowing request parsing to continue. Setting an empty array will cause

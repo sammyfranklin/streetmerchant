@@ -269,7 +269,7 @@ const store = {
 			series: envOrString(series)
 		};
 	}),
-	showOnlySeries: envOrArray(process.env.SHOW_ONLY_SERIES, ['3070', '3080', '3090', 'ryzen5600', 'ryzen5800', 'ryzen5900', 'ryzen5950', 'sonyps5c', 'sonyps5de']),
+	showOnlySeries: envOrArray(process.env.SHOW_ONLY_SERIES, ['3070', '3080', '3090', 'ryzen5600', 'ryzen5800', 'ryzen5900', 'ryzen5950', 'sonyps5c', 'sonyps5de', 'test:series']),
 	stores: envOrArray(process.env.STORES, ['nvidia']).map(entry => {
 		const [name, minPageSleep, maxPageSleep] = entry.match(/[^:]+/g) ?? [];
 		return {

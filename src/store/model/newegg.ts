@@ -1,4 +1,5 @@
 import {Store} from './store';
+import {Page} from 'puppeteer';
 import fetch from 'node-fetch';
 
 export const Newegg: Store = {
@@ -447,5 +448,11 @@ export const Newegg: Store = {
 		const response = await fetch(request_url);
 		const response_json = await response.json();
 		return response_json.MainItem !== undefined && response_json.MainItem.Instock === true;
+	},
+	goToCheckout: async (page: Page) => {
+		const cartUrl = 'https://secure.newegg.com/shop/cart';
+		const checkoutSelector = '.summary-actions button.btn-primary';
+		await page.goto(cartUrl, {waitUntil: 'networkidle0'});
+		await page.click(checkoutSelector);
 	}
 };
