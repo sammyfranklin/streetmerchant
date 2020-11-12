@@ -1,4 +1,5 @@
 import {Store} from './store';
+import {Page} from 'puppeteer';
 
 export const Adorama: Store = {
 	labels: {
@@ -125,5 +126,11 @@ export const Adorama: Store = {
 			url: 'https://www.adorama.com/asrx3090o24g.html'
 		}
 	],
-	name: 'adorama'
+	name: 'adorama',
+	checkoutURL: 'https://www.adorama.com/als.mvc/nspc/revised',
+	addToCart: async (page: Page) => {
+		const addToCartSelector = 'button.add-to-cart';
+		await page.click(addToCartSelector);
+		await page.waitForSelector('.popupContent.loaded');
+	}
 };

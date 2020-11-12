@@ -14,6 +14,7 @@ export type Series = 'test:series' | '3070' | '3080' | '3090' | 'ryzen5950' | 'r
 
 export type Link = {
 	brand: 'test:brand' | 'amd' | 'asus' | 'evga' | 'gainward' | 'gigabyte' | 'inno3d' | 'kfa2' | 'msi' | 'nvidia' | 'palit' | 'pny'| 'sony' | 'zotac';
+	isPurchased?: boolean;
 	itemNumber?: string;
 	series: Series;
 	model: string;
@@ -53,7 +54,9 @@ export type Store = {
 	};
 	labels: Labels;
 	name: string;
+	checkoutURL?: string;
 	setupAction?: (browser: Browser) => void;
+	addToCart?: (page: Page) => Promise<void>;
 	goToCheckout?: (page: Page) => Promise<void>;
 	/**
 	 * The range of status codes which considered successful, i.e. without error

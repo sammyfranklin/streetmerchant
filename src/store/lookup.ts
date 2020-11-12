@@ -11,8 +11,6 @@ import {processBackoffDelay} from './model/helpers/backoff';
 import {sendNotification} from '../notification';
 import {purchase} from './purchase';
 
-const SUCCESSFULLY_PURCHASED_STATUS_CODE = 1234567890;
-
 const inStock: Record<string, boolean> = {};
 
 const linkBuilderLastRunTimes: Record<string, number> = {};
@@ -28,6 +26,10 @@ const linkBuilderLastRunTimes: Record<string, number> = {};
 async function lookup(browser: Browser, store: Store) {
 	/* eslint-disable no-await-in-loop */
 	for (const link of store.links) {
+		if (link.isPurchased) {
+			continue;
+		}
+
 		if (!filterStoreLink(link)) {
 			continue;
 		}
@@ -40,6 +42,11 @@ async function lookup(browser: Browser, store: Store) {
 		const context = (config.browser.isIncognito ? await browser.createIncognitoBrowserContext() : browser.defaultBrowserContext());
 		const page = (config.browser.isIncognito ? await context.newPage() : await browser.newPage());
 		page.setDefaultNavigationTimeout(config.page.timeout);
+		await page.setExtraHTTPHeaders({
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
+			'Accept-Language': 'en,en-US;q=0,5',
+			Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,/;q=0.8'
+		});
 		await page.setUserAgent(getRandomUserAgent());
 
 		if (store.disableAdBlocker) {
@@ -61,7 +68,7 @@ async function lookup(browser: Browser, store: Store) {
 			await client.send('Network.clearBrowserCache');
 		}
 
-		if (statusCode === SUCCESSFULLY_PURCHASED_STATUS_CODE) {
+		if (link.isPurchased) {
 			// Don't close page
 			logger.info(`Not closing page ${page.url()} after purchasing ${link.model} from ${store.name}`);
 			return;
@@ -80,6 +87,7 @@ async function lookup(browser: Browser, store: Store) {
 }
 
 async function lookupCard(browser: Browser, store: Store, page: Page, link: Link): Promise<number> {
+	logger.verbose(`Directly going to item ${link.model} in ${store.name}`);
 	const givenWaitFor = store.waitUntil ? store.waitUntil : 'networkidle0';
 	const response: Response | null = await page.goto(link.url, {waitUntil: givenWaitFor});
 
@@ -99,7 +107,6 @@ async function lookupCard(browser: Browser, store: Store, page: Page, link: Link
 		return statusCode;
 	}
 
-	let isPurchased = false;
 	if (await lookupCardInStock(store, page, link)) { // If true, then item is in stock
 		// Param cartUrl is the url that adds the item to cart
 		const givenUrl = link.cartUrl ? link.cartUrl : link.url;
@@ -108,7 +115,7 @@ async function lookupCard(browser: Browser, store: Store, page: Page, link: Link
 		if (config.browser.open) {
 			try {
 				await purchase(browser, store, page, link);
-				isPurchased = true;
+				link.isPurchased = true;
 			} catch {
 				logger.info(`Couldn't purchase ${link.brand} even though it was in stock :(`);
 			}
@@ -132,7 +139,7 @@ async function lookupCard(browser: Browser, store: Store, page: Page, link: Link
 		}
 	}
 
-	return isPurchased ? SUCCESSFULLY_PURCHASED_STATUS_CODE : statusCode;
+	return statusCode;
 }
 
 async function lookupCardInStock(store: Store, page: Page, link: Link) {
