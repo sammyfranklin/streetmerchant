@@ -33,6 +33,7 @@ export type Labels = {
 	inStock?: LabelQuery;
 	outOfStock?: LabelQuery;
 	maxPrice?: Pricing;
+	inCart?: LabelQuery;
 };
 
 export type StatusCodeRangeArray = Array<(number | [number, number])>;
@@ -55,6 +56,8 @@ export type Store = {
 	labels: Labels;
 	name: string;
 	checkoutURL?: string;
+	loginURL?: string;
+	login?: (page: Page) => Promise<unknown[]>;
 	setupAction?: (browser: Browser) => void;
 	addToCart?: (page: Page) => Promise<void>;
 	goToCheckout?: (page: Page) => Promise<void>;

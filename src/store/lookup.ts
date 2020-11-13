@@ -10,10 +10,13 @@ import {filterStoreLink} from './filter';
 import {processBackoffDelay} from './model/helpers/backoff';
 import {sendNotification} from '../notification';
 import {purchase} from './purchase';
+import * as fs from 'fs';
 
 const inStock: Record<string, boolean> = {};
 
 const linkBuilderLastRunTimes: Record<string, number> = {};
+
+let hasUsedFirstPage = false;
 
 /**
  * Responsible for looking up information about a each product within
@@ -40,14 +43,43 @@ async function lookup(browser: Browser, store: Store) {
 		}
 
 		const context = (config.browser.isIncognito ? await browser.createIncognitoBrowserContext() : browser.defaultBrowserContext());
-		const page = (config.browser.isIncognito ? await context.newPage() : await browser.newPage());
+		let page: Page;
+		if (config.browser.isIncognito) {
+			page = await context.newPage();
+		} else if (hasUsedFirstPage) {
+			page = await browser.newPage();
+		} else {
+			page = (await browser.pages())[0];
+		}
+
+		hasUsedFirstPage = true;
 		page.setDefaultNavigationTimeout(config.page.timeout);
 		await page.setExtraHTTPHeaders({
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
-			'Accept-Language': 'en,en-US;q=0,5',
-			Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,/;q=0.8'
+			'Accept-Language': 'en-US,en;q=0.9',
+			'Cache-Control': 'max-age=0',
+			Referer: 'https://www.google.com/',
+			Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
 		});
 		await page.setUserAgent(getRandomUserAgent());
+		await page.evaluateOnNewDocument(fs.readFileSync('./preload.txt', 'utf8'));
+
+		if (config.store.shouldLogin) {
+			const cookiesFilePath = `cookies/${store.name}.json`;
+			if (store.loginURL) {
+				// This will catch all redirects to the login page as well as logging in for the first time
+				page.on('load', async () => {
+					if (store.login) {
+						const cookies = await store.login(page);
+						fs.writeFile(cookiesFilePath, JSON.stringify(cookies), () => {
+							logger.info(`Successfully logged in and stored session cookies at ${cookiesFilePath}`);
+						});
+					}
+				});
+				await page.goto(store.loginURL, {waitUntil: 'networkidle0'});
+			} else {
+				logger.warn(`Couldn't login to ${store.name}. No function to login implemented!`);
+			}
+		}
 
 		if (store.disableAdBlocker) {
 			try {
@@ -87,10 +119,25 @@ async function lookup(browser: Browser, store: Store) {
 }
 
 async function lookupCard(browser: Browser, store: Store, page: Page, link: Link): Promise<number> {
-	logger.verbose(`Directly going to item ${link.model} in ${store.name}`);
 	const givenWaitFor = store.waitUntil ? store.waitUntil : 'networkidle0';
-	const response: Response | null = await page.goto(link.url, {waitUntil: givenWaitFor});
 
+	if (config.store.onlyPurchase) {
+		logger.verbose(`Directly going to item ${link.model} in ${store.name}`);
+		try {
+			if (!link.cartUrl) {
+				await page.goto(link.url, {waitUntil: givenWaitFor});
+			}
+
+			await purchase(browser, store, page, link);
+			link.isPurchased = true;
+		} catch {
+			logger.info(`Couldn't purchase ${link.brand}. Item may not be in stock`);
+		}
+
+		return 200;
+	}
+
+	const response: Response | null = await page.goto(link.url, {waitUntil: givenWaitFor});
 	if (!response) {
 		logger.debug(Print.noResponse(link, store, true));
 	}

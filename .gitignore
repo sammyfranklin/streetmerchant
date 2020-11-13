@@ -15,4 +15,7 @@ success-*.png
 *.exe
 desktop.ini
 
+/cookies
 twitch.json
+credentials.json
+dates.json

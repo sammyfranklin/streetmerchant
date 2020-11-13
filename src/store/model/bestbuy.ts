@@ -9,6 +9,10 @@ export const BestBuy: Store = {
 		maxPrice: {
 			container: '[data-sticky-media-gallery] .priceView-price .priceView-hero-price span',
 			euroFormat: false
+		},
+		inCart: {
+			container: '.added-to-cart',
+			text: ['added to cart']
 		}
 	},
 	links: [

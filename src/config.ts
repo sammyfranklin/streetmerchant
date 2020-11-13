@@ -2,6 +2,7 @@ import {banner} from './banner';
 
 import {config as config_} from 'dotenv';
 import path from 'path';
+import * as fs from 'fs';
 
 config_({path: path.resolve(__dirname, '../.env')});
 
@@ -121,6 +122,10 @@ const browser = {
 	open: envOrBoolean(process.env.OPEN_BROWSER)
 };
 
+const credentialsFile = JSON.parse(fs.readFileSync('credentials.json').toString());
+const credentials: Array<{name: string; username: string; password: string}> = credentialsFile.stores;
+const card: {fname: string; mi: string; lname: string; number: string; exp: string[]; cvv: string} = credentialsFile.card;
+
 const docker = envOrBoolean(process.env.DOCKER);
 
 const logLevel = envOrString(process.env.LOG_LEVEL, 'info');
@@ -226,12 +231,15 @@ const nvidia = {
 };
 
 const page = {
-	height: 1080,
+	height: 768,
 	inStockWaitTime: envOrNumber(process.env.IN_STOCK_WAIT_TIME),
 	screenshot: envOrBoolean(process.env.SCREENSHOT),
 	timeout: envOrNumber(process.env.PAGE_TIMEOUT, 30000),
-	userAgents: envOrArray(process.env.USER_AGENT, ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36']),
-	width: 1920
+	userAgents: envOrArray(process.env.USER_AGENT, [
+		'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
+		'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
+	]),
+	width: 1366
 };
 
 const proxy = {
@@ -277,7 +285,9 @@ const store = {
 			minPageSleep: envOrNumberMin(minPageSleep, maxPageSleep, browser.minSleep),
 			name: envOrString(name)
 		};
-	})
+	}),
+	onlyPurchase: envOrBoolean(process.env.ONLY_PURCHASE, false),
+	shouldLogin: envOrBoolean(process.env.SHOULD_LOGIN, false)
 };
 
 export const defaultStoreData = {
@@ -287,6 +297,8 @@ export const defaultStoreData = {
 
 export const config = {
 	browser,
+	credentials,
+	card,
 	docker,
 	logLevel,
 	notifications,
