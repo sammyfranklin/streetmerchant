@@ -53,6 +53,7 @@ export type Store = {
 		ttl?: number;
 		urls: Array<{series: Series; url: string | string[]}>;
 	};
+	headers?: Record<string, string>;
 	labels: Labels;
 	name: string;
 	checkoutURL?: string;

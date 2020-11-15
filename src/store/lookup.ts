@@ -58,34 +58,48 @@ async function lookup(browser: Browser, store: Store) {
 			'Accept-Language': 'en-US,en;q=0.9',
 			'Cache-Control': 'max-age=0',
 			Referer: 'https://www.google.com/',
-			Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+			Accept: 'application/json,text/javascript,text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+			'Access-Control-Allow-Origin': '*',
+			Connection: 'keep-alive',
+			Pragma: 'no-cache',
+			'Sec-Fetch-Dest': 'empty',
+			'Sec-Fetch-Mode': 'cors'
 		});
+		if (store.headers) {
+			await page.setExtraHTTPHeaders(store.headers);
+		}
+
 		await page.setUserAgent(getRandomUserAgent());
 		await page.evaluateOnNewDocument(fs.readFileSync('./preload.txt', 'utf8'));
-
-		if (config.store.shouldLogin) {
-			const cookiesFilePath = `cookies/${store.name}.json`;
-			if (store.loginURL) {
-				// This will catch all redirects to the login page as well as logging in for the first time
-				page.on('load', async () => {
-					if (store.login) {
-						const cookies = await store.login(page);
-						fs.writeFile(cookiesFilePath, JSON.stringify(cookies), () => {
-							logger.info(`Successfully logged in and stored session cookies at ${cookiesFilePath}`);
-						});
-					}
-				});
-				await page.goto(store.loginURL, {waitUntil: 'networkidle0'});
-			} else {
-				logger.warn(`Couldn't login to ${store.name}. No function to login implemented!`);
-			}
-		}
 
 		if (store.disableAdBlocker) {
 			try {
 				await disableBlockerInPage(page);
 			} catch (error) {
 				logger.error(error);
+			}
+		}
+
+		if (config.store.shouldLogin) {
+			const cookiesFilePath = `cookies/${store.name}.json`;
+			if (store.loginURL) {
+				if (!config.store.shouldLoginOnce) {
+					// This will catch all redirects to the login page as well as logging in for the first time
+					page.on('load', async () => {
+						if (store.login) {
+							const cookies = await store.login(page);
+							fs.writeFile(cookiesFilePath, JSON.stringify(cookies), () => {
+								logger.info(`Successfully logged in and stored session cookies at ${cookiesFilePath}`);
+							});
+						}
+					});
+					await page.goto(store.loginURL, {waitUntil: 'networkidle0'});
+				} else if (store.login) {
+					await page.goto(store.loginURL, {waitUntil: 'networkidle0'});
+					await store.login(page);
+				}
+			} else {
+				logger.warn(`Couldn't login to ${store.name}. No function to login implemented!`);
 			}
 		}
 

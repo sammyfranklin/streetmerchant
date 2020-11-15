@@ -287,7 +287,8 @@ const store = {
 		};
 	}),
 	onlyPurchase: envOrBoolean(process.env.ONLY_PURCHASE, false),
-	shouldLogin: envOrBoolean(process.env.SHOULD_LOGIN, false)
+	shouldLogin: envOrBoolean(process.env.SHOULD_LOGIN, false),
+	shouldLoginOnce: envOrBoolean(process.env.SHOULD_LOGIN_ONCE, false)
 };
 
 export const defaultStoreData = {

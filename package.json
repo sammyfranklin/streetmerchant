@@ -6,7 +6,7 @@
     "all": "npm run build && npm run lint",
     "build": "tsc",
     "lint": "xo",
-    "lint:fix": "xo --fix",
+    "lint:fix": "xo --fix --env=browser",
     "start": "npm run build && node build/index.js",
     "start:dev": "nodemon --config nodemon.json",
     "start:production": "node build/index.js",
