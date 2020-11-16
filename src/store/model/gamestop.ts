@@ -1,4 +1,8 @@
 import {Store} from './store';
+import {Page} from 'puppeteer';
+import {config} from '../../config';
+import {logger} from '../../logger';
+import {delay} from '../../util';
 
 export const Gamestop: Store = {
 	labels: {
@@ -48,5 +52,44 @@ export const Gamestop: Store = {
 		}
 	],
 	name: 'gamestop',
-	successStatusCodes: [[0, 399], 404]
+	successStatusCodes: [[0, 399], 404],
+	loginURL: 'https://gamestop.com',
+	login: async (page: Page) => {
+		const credentials = config.credentials.find(cred => cred.name === 'gamestop');
+		await page.click('a[href=\'#accountModal\']');
+		await page.waitForSelector('#signIn');
+		await page.click('#signIn');
+
+		await page.waitForSelector('input#login-form-email');
+		// Wait for ~1 second animation
+		await delay(1000);
+		await page.focus('input#login-form-email');
+		if (credentials) {
+			await page.keyboard.type(credentials.username, {delay: 110});
+		}
+
+		await page.focus('input#login-form-password');
+		if (credentials) {
+			await page.keyboard.type(credentials.password, {delay: 110});
+		}
+
+		await page.click('#signinCheck > button');
+		await page.waitForSelector('a[href=\'https://www.gamestop.com/logout/\']');
+		return page.cookies();
+	},
+	addToCart: async (page: Page) => {
+		await page.click('.add-to-cart.btn-primary');
+		logger.verbose('Added to cart');
+	},
+	goToCheckout: async (page: Page) => {
+		await page.goto('https://www.gamestop.com/checkout/', {waitUntil: 'networkidle0'});
+		await page.goto('https://www.gamestop.com/checkout/?stage=payment', {waitUntil: 'networkidle0'});
+		logger.verbose('Adding card details');
+		await page.focus('#saved-payment-security-code');
+		await page.keyboard.type(config.card.cvv);
+		await page.click('.submit-payment.btn-primary');
+		await page.waitForSelector('.place-order.btn-primary');
+		logger.verbose('Placing order!');
+		await page.click('.place-order.btn-primary');
+	}
 };
