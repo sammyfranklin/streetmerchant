@@ -1,6 +1,8 @@
 import {Store} from './store';
-import {Page} from 'puppeteer';
+import {Page, Frame} from 'puppeteer';
 import fetch from 'node-fetch';
+import {config} from '../../config';
+import {logger} from '../../logger';
 
 export const Newegg: Store = {
 	labels: {
@@ -23,7 +25,7 @@ export const Newegg: Store = {
 			itemNumber: '14-500-495',
 			model: 'test:model',
 			series: 'test:series',
-			url: 'https://www.newegg.com/zotac-geforce-rtx-2060-zt-t20600k-10m/p/N82E16814500495'
+			url: 'https://www.newegg.com/msi-geforce-rtx-2060-rtx-2060-ventus-xs-6g-oc/p/N82E16814137396'
 		},
 		{
 			brand: 'asus',
@@ -449,10 +451,107 @@ export const Newegg: Store = {
 		const response_json = await response.json();
 		return response_json.MainItem !== undefined && response_json.MainItem.Instock === true;
 	},
+	loginURL: 'https://secure.newegg.com/NewMyAccount/AccountLogin.aspx?nextpage=https%3A%2F%2Fwww.newegg.com%2F',
+	login: async (page: Page) => {
+		const credentials = config.credentials.find(cred => cred.name === 'newegg');
+		if (!credentials) {
+			return page.cookies();
+		}
+
+		const usernameSelector = '#labeled-input-signEmail';
+		const passwordSelector = '#labeled-input-password';
+		const submitSelector = '#signInSubmit';
+		// Newegg forces new pages to go to sign in page twice
+		await page.goto('https://secure.newegg.com/NewMyAccount/AccountLogin.aspx?nextpage=https%3A%2F%2Fwww.newegg.com%2F', {waitUntil: 'networkidle0'});
+		await page.waitForSelector(usernameSelector);
+		await page.focus(usernameSelector);
+		await page.keyboard.type(credentials.username);
+		await page.click(submitSelector);
+		await page.waitForSelector(passwordSelector);
+		await page.focus(passwordSelector);
+		await page.keyboard.type(credentials.password);
+		await page.click(submitSelector);
+		await page.waitForNavigation({waitUntil: 'networkidle0'});
+		return page.cookies();
+	},
+	addToCart: async (page: Page) => {
+		const selector = '#ProductBuy > .nav-row > .nav-col > button.btn-wide';
+		await page.click(selector);
+		await page.waitForSelector('body[style=\'overflow: hidden;\']');
+	},
 	goToCheckout: async (page: Page) => {
 		const cartUrl = 'https://secure.newegg.com/shop/cart';
 		const checkoutSelector = '.summary-actions button.btn-primary';
-		await page.goto(cartUrl, {waitUntil: 'networkidle0'});
+		const step2Selector = '#app > div > section > div > div > form > div.row-inner > div.row-body > div > div:nth-child(2) > div > div.checkout-step-action > button';
+		const cvvSelector = '.item-cell > .checkout-step[data-status=add] input.mask-cvv-4';
+		const retypeCvvSelctor = '.retype-security-code > input';
+		const step3Selector = '#app > div > section > div > div > form > div.row-inner > div.row-body > div > div:nth-child(3) > div > div.checkout-step-action > button';
+		const ccnumberRetypeFrame = 'ec_payment';
+		const ccnumberRetypeSelector = '#app > div > div.modal-body > div.form-cells > div:nth-child(1) > input';
+		const ccnumberRetypeSaveSelector = '#app > div > div.modal-footer > button.btn.btn-primary';
+		const placeOrderSelector = '#btnCreditCard';
+		const interval = 50;
+
+		// Cart
+		await page.goto(cartUrl, {waitUntil: 'domcontentloaded'});
+		// Checkout
 		await page.click(checkoutSelector);
+		// Step 1 (automatically skipped)
+		await page.waitForNavigation({waitUntil: 'networkidle0'});
+		// Step 2
+		let shouldRetypeCvv = false;
+		try {
+			await page.click(step2Selector);
+		} catch {
+			logger.verbose('Step 2 was skipped');
+			shouldRetypeCvv = true;
+		}
+
+		// Step 3
+		if (shouldRetypeCvv) {
+			await page.waitForSelector(retypeCvvSelctor);
+			await page.focus(retypeCvvSelctor);
+			await page.keyboard.type(config.card.cvv);
+		} else {
+			await page.waitForSelector(cvvSelector);
+			await page.focus(cvvSelector);
+			await page.keyboard.type(config.card.cvv);
+			await page.click(step3Selector);
+		}
+
+		// Poll for either ccnumber retype or payment selector
+		await new Promise(resolve => {
+			setTimeout(async () => checkCCNumberRetype(resolve), interval);
+		});
+		logger.verbose('Placed order!');
+
+		async function checkCCNumberRetype(callback: () => void) {
+			const frames: Frame[] = page.frames();
+			const frame = frames.find(frame => frame.name().includes(ccnumberRetypeFrame)) as Frame;
+			if (frame && await frame.$(ccnumberRetypeSelector)) {
+				await frame.focus(ccnumberRetypeSelector);
+				await page.keyboard.type(config.card.number);
+				await frame.click(ccnumberRetypeSaveSelector);
+				await checkPayment();
+				return callback();
+			}
+
+			setTimeout(async () => checkPayment(callback), interval);
+		}
+
+		async function checkPayment(callback: (() => void) | null = null) {
+			if (callback) {
+				if (await page.$(placeOrderSelector)) {
+					logger.verbose('Placing order...');
+					await page.click(placeOrderSelector);
+				} else {
+					setTimeout(async () => checkCCNumberRetype(callback), interval);
+				}
+			} else {
+				await page.waitForSelector(placeOrderSelector);
+				logger.verbose('Placing order...');
+				await page.click(placeOrderSelector);
+			}
+		}
 	}
 };

@@ -54,7 +54,6 @@ export async function pageIncludesLabels(page: Page, query: LabelQuery, options:
 
 export async function extractPageContents(page: Page, selector: Selector): Promise<string | null> {
 	return page.evaluate((options: Selector) => {
-		// eslint-disable-next-line no-undef
 		const element: globalThis.HTMLElement | null = document.querySelector(options.selector);
 
 		if (!element) {

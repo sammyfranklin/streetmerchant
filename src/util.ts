@@ -73,3 +73,22 @@ export async function closePage(page: Page) {
 export function getRandomUserAgent(): string {
 	return config.page.userAgents[Math.floor(Math.random() * config.page.userAgents.length)];
 }
+
+export async function indicateMouseClicks(page: Page) {
+	await page.evaluate(() => {
+		document.addEventListener('mousedown', (event: MouseEvent) => {
+			console.log(`Recevied Mouse Click: ${JSON.stringify(event)}`);
+			const square = document.createElement('div');
+			const size = 10;
+			const x = Math.floor(event.pageX - (size / 2));
+			const y = Math.floor(event.pageY - (size / 2));
+			square.style.position = 'absolute';
+			square.style.top = `${y}px`;
+			square.style.left = `${x}px`;
+			square.style.width = size.toString();
+			square.style.height = size.toString();
+			square.style.backgroundColor = 'lightblue';
+			document.body.append(square);
+		});
+	});
+}

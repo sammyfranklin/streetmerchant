@@ -144,8 +144,8 @@ async function lookupCard(browser: Browser, store: Store, page: Page, link: Link
 
 			await purchase(browser, store, page, link);
 			link.isPurchased = true;
-		} catch {
-			logger.info(`Couldn't purchase ${link.brand}. Item may not be in stock`);
+		} catch (error) {
+			logger.info(`Couldn't purchase ${link.brand}. Item may not be in stock. ${JSON.stringify(error)}`);
 		}
 
 		return 200;
