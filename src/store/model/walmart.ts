@@ -19,6 +19,27 @@ export const Walmart: Store = {
 	},
 	links: [
 		{
+			brand: 'test:brand',
+			model: 'test:model',
+			series: 'test:series',
+			url: 'https://www.walmart.com/ip/ZOTAC-GAMING-GeForce-RTX-2060-Black/341937837',
+			cartUrl: 'http://affil.walmart.com/cart/buynow?items=341937837'
+		},
+		{
+			brand: 'microsoft',
+			model: 'Xbox Series X',
+			series: 'xboxseriesx',
+			url: 'https://www.walmart.com/ip/XB1-Xbox-Series-X/443574645',
+			cartUrl: 'http://affil.walmart.com/cart/buynow?items=443574645'
+		},
+		{
+			brand: 'microsoft',
+			model: 'Xbox Series S',
+			series: 'xboxseriess',
+			url: 'https://www.walmart.com/ip/XB1-Xbox-Series-X/606518560',
+			cartUrl: 'http://affil.walmart.com/cart/buynow?items=606518560'
+		},
+		{
 			brand: 'sony',
 			model: 'ps5 console',
 			series: 'sonyps5c',
@@ -65,6 +86,7 @@ export const Walmart: Store = {
 		}
 
 		await page.click('button.button[type=submit]');
+		await page.waitForNavigation({waitUntil: 'networkidle0'});
 		return page.cookies();
 	},
 	goToCheckout: async (page: Page): Promise<void> => {

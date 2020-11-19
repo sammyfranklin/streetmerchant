@@ -16,8 +16,6 @@ const inStock: Record<string, boolean> = {};
 
 const linkBuilderLastRunTimes: Record<string, number> = {};
 
-let hasUsedFirstPage = false;
-
 /**
  * Responsible for looking up information about a each product within
  * a `Store`. It's important that we ignore `no-await-in-loop` here
@@ -46,13 +44,10 @@ async function lookup(browser: Browser, store: Store) {
 		let page: Page;
 		if (config.browser.isIncognito) {
 			page = await context.newPage();
-		} else if (hasUsedFirstPage) {
-			page = await browser.newPage();
 		} else {
-			page = (await browser.pages())[0];
+			page = await browser.newPage();
 		}
 
-		hasUsedFirstPage = true;
 		page.setDefaultNavigationTimeout(config.page.timeout);
 		await page.setExtraHTTPHeaders({
 			'Accept-Language': 'en-US,en;q=0.9',
