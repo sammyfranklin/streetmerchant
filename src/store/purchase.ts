@@ -39,7 +39,9 @@ async function tryAddToCartContinually(page: Page, store: Store, link: Link) {
 			} else {
 				logger.verbose('Item not in stock');
 				setTimeout(async () => {
-					await page.reload();
+					if (!link.cartUrl && store.addToCart) {
+						await page.reload();
+					}
 					await tryAddToCartContinually(page, store, link);
 				}, 50);
 			}

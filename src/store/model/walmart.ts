@@ -2,6 +2,7 @@ import {Store} from './store';
 import {Page} from 'puppeteer';
 import {config} from '../../config';
 import {logger} from '../../logger';
+import {delay} from '../../util';
 
 export const Walmart: Store = {
 	labels: {
@@ -58,6 +59,7 @@ export const Walmart: Store = {
 	loginURL: 'https://www.walmart.com/account/login',
 	login: async (page: Page): Promise<unknown[]> => {
 		const credentials = config.credentials.find(cred => cred.name === 'walmart');
+		await delay(2000);
 		try {
 			await page.focus('#email');
 		} catch {

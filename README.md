@@ -1,5 +1,5 @@
 <p align="center"><a href="https://github.com/jef/streetmerchant#readme"><img src="https://raw.githubusercontent.com/jef/streetmerchant/main/media/streetmerchant.png" alt="streetmerchant" /></a></p>
-<p align="center">The world's easiest, most powerful stock checker
+<p align="center">A fork of "The world's easiest, most powerful stock checker" -- but with purchase capabilities.
 <br/><br/>
 <a href="https://github.com/jef/streetmerchant/actions?query=workflow%3Aci"><img src="https://github.com/jef/streetmerchant/workflows/ci/badge.svg" /></a>
 <a href="https://discord.gg/gbVY4vB9JF"><img src="https://img.shields.io/discord/773913070665859073.svg?label=chat&logo=discord&logoColor=ffffff&color=7389D8" alt="Tweet" /></a>
@@ -9,6 +9,17 @@
 <a href="https://github.com/jef/streetmerchant/issues">Issues</a> |
 <a href="https://github.com/jef/streetmerchant/wiki">Wiki</a>
 </p>
+
+## Supported Stores for Purchasing
+Can purchase from the stores below:
+- Adorama
+- AMD (pending)
+- Amazon
+- Best Buy (pending)
+- Gamestop
+- Newegg
+- Walmart
+- Playstation Direct (May not work when the online queue is enabled)
 
 ## Features
 
