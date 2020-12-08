@@ -10,7 +10,7 @@ export type Pricing = {
 	euroFormat?: boolean;
 };
 
-export type Series = 'test:series' | '3070' | '3080' | '3090' | 'ryzen5950' | 'ryzen5900' | 'ryzen5800' | 'ryzen5600' | 'sonyps5c' | 'sonyps5de' | 'xboxseriesx' | 'xboxseriess';
+export type Series = 'test:series' | '3070' | '3080' | '3090' | 'ryzen5950' | 'ryzen5900' | 'ryzen5800' | 'ryzen5600' | 'sonyps5c' | 'sonyps5de' | 'xboxseriesx' | 'xboxseriess' | 'rx6900xt';
 
 export type Link = {
 	brand: 'test:brand' | 'amd' | 'asus' | 'evga' | 'gainward' | 'gigabyte' | 'inno3d' | 'kfa2' | 'msi' | 'nvidia' | 'palit' | 'pny'| 'sony' | 'zotac' | 'microsoft';
@@ -52,6 +52,10 @@ export type Store = {
 		builder: (docElement: cheerio.Cheerio, series: Series) => Link[];
 		ttl?: number;
 		urls: Array<{series: Series; url: string | string[]}>;
+	};
+	cartSelectors?: {
+		inCart: string;
+		notInCart: string;
 	};
 	headers?: Record<string, string>;
 	labels: Labels;

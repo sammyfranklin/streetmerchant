@@ -1,6 +1,13 @@
 import {Store} from './store';
+import {Page} from 'puppeteer';
+import {config} from '../../config';
+import {logger} from '../../logger';
 
 export const BestBuy: Store = {
+	cartSelectors: {
+		inCart: 'button[data-track="Checkout - Top"]',
+		notInCart: '.checkout-buttons > a[href="/"]'
+	},
 	labels: {
 		inStock: {
 			container: '[data-sticky-media-gallery] .fulfillment-add-to-cart-button',
@@ -9,10 +16,6 @@ export const BestBuy: Store = {
 		maxPrice: {
 			container: '[data-sticky-media-gallery] .priceView-price .priceView-hero-price span',
 			euroFormat: false
-		},
-		inCart: {
-			container: '.added-to-cart',
-			text: ['added to cart']
 		}
 	},
 	links: [
@@ -20,7 +23,15 @@ export const BestBuy: Store = {
 			brand: 'test:brand',
 			model: 'test:model',
 			series: 'test:series',
-			url: 'https://www.bestbuy.com/site/evga-ko-ultra-gaming-nvidia-geforce-rtx-2060-6gb-gddr6-pci-express-3-0-graphics-card-black-gray/6403801.p?skuId=6403801&intl=nosplash'
+			cartUrl: 'https://api.bestbuy.com/click/-/6346818/cart',
+			url: 'https://www.bestbuy.com/site/sandisk-ultra-plus-64gb-microsdxc-uhs-i-memory-card/6346818.p?skuId=6346818&intl=nosplash'
+		},
+		{
+			brand: 'amd',
+			cartUrl: '',
+			model: '',
+			series: 'rx6900xt',
+			url: ''
 		},
 		{
 			brand: 'nvidia',
@@ -275,5 +286,35 @@ export const BestBuy: Store = {
 			url: 'https://www.bestbuy.com/site/sony-playstation-5-digital-edition-console/6430161.p?skuId=6430161&intl=nosplash'
 		}
 	],
-	name: 'bestbuy'
+	name: 'bestbuy',
+	loginURL: 'https://www.bestbuy.com/identity/global/signin',
+	login: async (page: Page): Promise<unknown[]> => {
+		const credentials = config.credentials.find(cred => cred.name === 'bestbuy');
+		if (!credentials) {
+			return [];
+		}
+
+		const emailSelector = 'input[type=email]';
+		const passwordSelector = 'input[type=password]';
+		const signinSelector = 'button[type=submit]';
+		await page.focus(emailSelector);
+		await page.keyboard.type(credentials.username);
+		await page.focus(passwordSelector);
+		await page.keyboard.type(credentials.password);
+		await page.click(signinSelector);
+		await page.waitForNavigation({waitUntil: 'networkidle0'})
+		return await page.cookies();
+	},
+	goToCheckout: async (page: Page): Promise<void> => {
+		const cvvSelector = '#credit-card-cvv';
+		const placeOrderSelector = 'button[data-track="Place your Order - Contact Card"]';
+		const paymentUrl = 'https://www.bestbuy.com/checkout/r/payment';
+		logger.verbose('Checking out. Going to payment');
+		await page.goto(paymentUrl, {waitUntil: 'networkidle0'});
+		logger.verbose('Checking out. Entering CVV');
+		await page.focus(cvvSelector);
+		await page.keyboard.type(config.card.cvv);
+		logger.verbose('Placing Order');
+		await page.click(placeOrderSelector);
+	}
 };

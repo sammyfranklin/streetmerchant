@@ -74,6 +74,49 @@ export function getRandomUserAgent(): string {
 	return config.page.userAgents[Math.floor(Math.random() * config.page.userAgents.length)];
 }
 
+export async function waitForSelectorOR(page: Page, ...selectors: string[]): Promise<void> {
+	const waitFor = async (selectorIndex: number): Promise<void> => {
+		return new Promise(async resolve => {
+			if (await page.$(selectors[selectorIndex])) {
+				resolve();
+			} else {
+				setTimeout(()=>resolve(waitFor((selectorIndex + 1) % selectors.length)), 50);
+			}
+		})
+	};
+	await waitFor(0);
+}
+
+export async function waitForSelectorIfAElseB(page: Page, selectorA: string, selectorB: string): Promise<boolean> {
+	const waitForA = async (): Promise<boolean> => {
+		return new Promise(async resolve => {
+			try {
+				if (await page.$(selectorA)) {
+					resolve(true);
+				} else {
+					setTimeout(()=>resolve(waitForB()), 50);
+				}
+			} catch {
+				setTimeout(()=>resolve(waitForA()), 50);
+			}
+		});
+	};
+	const waitForB = async (): Promise<boolean> => {
+		return new Promise(async resolve => {
+			try {
+				if (await page.$(selectorB)) {
+					resolve(false);
+				} else {
+					setTimeout(()=>resolve(waitForA()), 50);
+				}
+			} catch {
+				setTimeout(()=>resolve(waitForB()), 50);
+			}
+		});
+	};
+	return await waitForA();
+}
+
 export async function indicateMouseClicks(page: Page) {
 	await page.evaluate(() => {
 		document.addEventListener('mousedown', (event: MouseEvent) => {

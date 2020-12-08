@@ -17,15 +17,28 @@ export const Newegg: Store = {
 		maxPrice: {
 			container: 'div#app div.product-price > ul > li.price-current > strong',
 			euroFormat: false
+		},
+		inCart: {
+			container: 'div.message.message-success.message-added',
+			text: ['Item has been added to cart.']
 		}
 	},
 	links: [
 		{
 			brand: 'test:brand',
+			cartUrl: 'https://secure.newegg.com/Shopping/AddtoCart.aspx?Submit=ADD&ItemList=N82E16811139156',
 			itemNumber: '14-500-495',
 			model: 'test:model',
 			series: 'test:series',
-			url: 'https://www.newegg.com/msi-geforce-rtx-2060-rtx-2060-ventus-xs-6g-oc/p/N82E16814137396'
+			url: 'https://www.newegg.com/msi-geforce-rtx-2060-rtx-2060-ventus-xs-6g-oc/p/N82E16811139156'
+		},
+		{
+			brand: 'amd',
+			cartUrl: '',
+			itemNumber: '',
+			model: '',
+			series: 'rx6900xt',
+			url: ''
 		},
 		{
 			brand: 'asus',

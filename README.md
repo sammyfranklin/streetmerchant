@@ -15,7 +15,7 @@ Can purchase from the stores below:
 - Adorama
 - AMD (pending)
 - Amazon
-- Best Buy (pending)
+- Best Buy
 - Gamestop
 - Newegg
 - Walmart

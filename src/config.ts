@@ -123,7 +123,7 @@ const browser = {
 };
 
 const credentialsFile = JSON.parse(fs.readFileSync('credentials.json').toString());
-const credentials: Array<{name: string; username: string; password: string}> = credentialsFile.stores;
+const credentials: Array<{name: string; username: string; password: string, phone: string}> = credentialsFile.stores;
 const card: {fname: string; mi: string; lname: string; number: string; exp: string[]; cvv: string} = credentialsFile.card;
 
 const docker = envOrBoolean(process.env.DOCKER);
@@ -267,6 +267,7 @@ const store = {
 			sonyps5de: -1,
 			xboxseriesx: -1,
 			xboxseriess: -1,
+			rx6900xt: -1,
 			'test:series': -1
 		}
 	},
@@ -291,6 +292,7 @@ const store = {
 		'sonyps5de',
 		'xboxseriesx',
 		'xboxseriess',
+		'rx6900xt',
 		'test:series'
 	]),
 	stores: envOrArray(process.env.STORES, ['nvidia']).map(entry => {
